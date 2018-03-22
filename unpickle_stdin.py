@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import pickle
 import struct
 import sys
@@ -42,3 +43,4 @@ except UnicodeError:
     pass
 except ValueError:
     pass
+os._exit(0)

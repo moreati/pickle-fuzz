@@ -1,0 +1,27 @@
+start_time        : 1521671477
+last_update       : 1521679007
+fuzzer_pid        : 30677
+cycles_done       : 10
+execs_done        : 6200058
+execs_per_sec     : 616.97
+paths_total       : 420
+paths_favored     : 103
+paths_found       : 181
+paths_imported    : 0
+max_depth         : 15
+cur_path          : 362
+pending_favs      : 0
+pending_total     : 90
+variable_paths    : 0
+stability         : 100.00%
+bitmap_cvg        : 0.98%
+unique_crashes    : 0
+unique_hangs      : 0
+last_path         : 1521678882
+last_crash        : 0
+last_hang         : 0
+execs_since_crash : 6200058
+exec_timeout      : 20
+afl_banner        : unpickle_stdin.py
+afl_version       : 2.49b
+command_line      : afl-fuzz -i - -o results/ ./unpickle_stdin.py
