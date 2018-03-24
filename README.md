@@ -110,7 +110,7 @@ documented, or standardised. To quote [Don’t use pickle — use Camel]
 > classes in non-obvious ways. You can’t even easily tell which classes
 > are baked forever into your pickles. Once a pickle breaks, figuring out
 > why and where and how to fix it is an utter nightmare.
-
+>
 > Don’t use `pickle`.
 
 ## Further reading
