@@ -3,8 +3,8 @@
 import cPickle
 import cStringIO
 import pickletools
-from hypothesis import assume, example, given, strategies as st
-from hypothesis import HealthCheck, settings, unlimited
+from hypothesis import assume, example, given, note, strategies as st
+from hypothesis import HealthCheck, Verbosity, settings, unlimited
 
 
 opcodes = st.sampled_from([opcode.code for opcode in pickletools.opcodes])
@@ -23,6 +23,8 @@ def pickles(draw):
     xs = draw(st.lists(ops, min_size=1))
     return b''.join(xs)
 
+f=open('/tmp/suspects.py', 'w')
+
 @given(st.lists(ops, min_size=1))
 @settings(
     max_examples=1<<32, max_iterations=1<<32,
@@ -30,9 +32,12 @@ def pickles(draw):
     suppress_health_check=[
         HealthCheck.hung_test,
     ],
+    #verbosity=Verbosity.verbose,
 )
 def test_environment_is_unchanged(l):
     s = b''.join(l)
+    print('%r' % s)
+    f.write('%r,\n' % s)
     unpickler = cPickle.Unpickler(cStringIO.StringIO(s))
     unpickler.find_global = None
     lcls = locals()

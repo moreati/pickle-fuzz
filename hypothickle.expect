@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+
+spawn pytest -s hypothickle.py
+
+set timeout 15
+
+expect {
+    -re "." { exp_continue }
+    timeout { close -i spawn_id }
+}
