@@ -33,6 +33,8 @@ except MemoryError:
     pass
 except NameError:
     pass
+except OverflowError:
+    pass
 except struct.error:
     pass
 except SyntaxError:
