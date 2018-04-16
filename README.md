@@ -151,6 +151,25 @@ The `STOP` opcode terminates unpickling, and returns the topmost stack item.
 After this occurs the stack should be empty, that condition is not checked or
 enforced.
 
+### Extension Registry
+
+Since protocol 2 Pickle has included 'extension' opcodes. Chosen types may
+have their constructor added to the extension registry. When pickled these
+constructors will be identified by an integer, instead of the GLOBAL (`c`)
+op-code. This mechanism is inherantly opt-in, since the extension registry is
+empty by default. An example
+
+```
+>>> import collections, copy_reg, pickle, pickletools
+>>> pickletools.optimize(pickle.dumps(collections.OrderedDict(), protocol=2))
+'\x80\x02ccollections\nOrderedDict\n]\x85R.'
+>>> copy_reg.add_extension('collections', 'OrderedDict', 240)
+>>> pickletools.optimize(pickle.dumps(collections.OrderedDict(), protocol=2))
+'\x80\x02\x82\xf0]\x85R.'
+```
+
+Note that this still requires the REDUCE op-code.
+
 ## Further reading
 
 Other pickle payloads based on global objects
