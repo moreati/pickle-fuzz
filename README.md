@@ -16,7 +16,7 @@ documentation warns
 > constructed data. Never unpickle data received from an untrusted
 > or unauthenticated source.
 
-The documentation provides a trivial example
+The documentation provides a trivial proof of concept
 
 ```python
 b"cos\nsystem\n(S'echo hello world'\ntR."
@@ -53,7 +53,7 @@ Even with this mitigation though, pickle cannot be considered safe. Quoting
 
 [PEP 307: Security Issues]: https://www.python.org/dev/peps/pep-0307/#security-issues
 
-This repository represent a small effort to bridge this gap.
+This repository represents a small effort to bridge this gap.
 
 ## Other attacks
 
