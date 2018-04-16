@@ -131,8 +131,12 @@ the impact of any DOS.
 
 ## Other considerations
 
+### Bit rot
+
 In addition to the known security issues the Pickle protocol is not formally
-documented, or standardised. To quote [Don’t use pickle — use Camel]
+documented, or standardised. Pickling of custom classes is tightly
+coupled to their implementation. This makes Pickle a poor choice choice for
+any long term storage and retrieval. To quote [Don’t use pickle — use Camel]
 
 > Its automatic, magical behavior shackles you to the internals of your
 > classes in non-obvious ways. You can’t even easily tell which classes
