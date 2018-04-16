@@ -145,6 +145,12 @@ any long term storage and retrieval. To quote [Don’t use pickle — use Camel]
 >
 > Don’t use `pickle`.
 
+### Stack shenanigans?
+
+The `STOP` opcode terminates unpickling, and returns the topmost stack item.
+After this occurs the stack should be empty, that condition is not checked or
+enforced.
+
 ## Further reading
 
 Other pickle payloads based on global objects
