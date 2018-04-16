@@ -101,6 +101,34 @@ There does not appear to be anything in current implementations
 that enforces this. Hence a crafted payload could cause excessive memory
 allocation during unpickling.
 
+#### Quadratic execution
+
+In protocols 0 and 1 most variable length values are pickled as a new-line
+terminated, ASCII string. This includes (long) integers. `pickletools`
+documentation notes that
+
+> LONG takes time quadratic in the number of digits when unpickling
+> (this is simply due to the nature of decimal->binary conversion).
+> Proto 2 added linear-time (in C; still quadratic-time in Python) LONG1
+> and LONG4 opcodes
+
+The comment (commit [bf2674], 28 Jan 2003) about quadratic runtime in `LONG1`
+and `LONG2` appears to be out of date. A subsequent comment (commit [fdc034],
+2 Feb 2003) notes
+
+```python
+def decode_long(data):
+    ...
+    n = long(ashex, 16) # quadratic time before Python 2.3; linear now
+```
+
+However nothing in the `Unpickler` implementation enforces the use of `LONG1`
+and `LONG2`. Hence an attacker can simply avoid using them in order to magnify
+the impact of any DOS.
+
+[bf2674]: https://github.com/python/cpython/commit/bf2674be0e95787cdeb154091b7377e30b2827bf
+[fdc034]: https://github.com/python/cpython/commit/fdc03462b3e0796ae6474da6f0f9844773d1da8f
+
 ## Other considerations
 
 In addition to the known security issues the Pickle protocol is not formally
