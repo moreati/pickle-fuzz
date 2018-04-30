@@ -101,6 +101,39 @@ There does not appear to be anything in current implementations
 that enforces this. Hence a crafted payload could cause excessive memory
 allocation during unpickling.
 
+#### Billion laughs
+
+Since Pickle allows references between objects, it is possible to construct
+[billion laughs attack] payloads. A pickle of a few hundred bytes can result
+in data structures containing billions of items. If the payload is
+successfully deserialised then further processing (e.g. serializing to JSON,
+writing `repr()` to a log) will cause excessive memory & CPU consumption.
+If the payload contains a sufficient number of references then the operating
+System will usually kill the Python process for exceeding resource limits.
+
+[billion laughs attack]: https://en.wikipedia.org/wiki/Billion_laughs_attack
+
+```
+>>> a = ['lol']*10
+>>> a
+['lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol']
+>>> b = [a,a,a,a,a,a,a,a,a,a]
+>>> c = [b,b,b,b,b,b,b,b,b,b]
+>>> d = [c,c,c,c,c,c,c,c,c,c]
+>>> e = [d,d,d,d,d,d,d,d,d,d]
+>>> f = [e,e,e,e,e,e,e,e,e,e]
+>>> g = [f,f,f,f,f,f,f,f,f,f]
+>>> h = [g,g,g,g,g,g,g,g,g,g]
+>>> i = [h,h,h,h,h,h,h,h,h,h]
+>>> j = [i,i,i,i,i,i,i,i,i,i]
+>>> len(j)
+10
+>>> 10**10
+10000000000
+>>> pickle.dump(j, open('billion-laughs.pkl1', 'wb'))
+>>> pickle.dump(j, open('billion-laughs.pkl2', 'wb'), protocol=2)
+```
+
 #### Quadratic execution
 
 In protocols 0 and 1 most variable length values are pickled as a new-line
