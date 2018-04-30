@@ -57,7 +57,7 @@ for protocol in PROTOCOLS:
         print times
 
     for exponent in LENGTHS:
-        s = cpickle.dumps(10**exponent, protocol=protocol)
+        s = cpickle.dumps(10L**exponent, protocol=protocol)
         print 'loads,int,protocol=%i,len=%i' % (protocol, exponent+1)
         times = repeat(
             setup='from cPickle import loads; s=%r' % s,
