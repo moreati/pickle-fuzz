@@ -113,7 +113,7 @@ System will usually kill the Python process for exceeding resource limits.
 
 [billion laughs attack]: https://en.wikipedia.org/wiki/Billion_laughs_attack
 
-```
+```python
 >>> a = ['lol']*10
 >>> a
 ['lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol']
