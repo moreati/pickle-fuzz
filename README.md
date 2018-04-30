@@ -134,7 +134,7 @@ System will usually kill the Python process for exceeding resource limits.
 >>> pickle.dump(j, open('billion-laughs.pkl2', 'wb'), protocol=2)
 ```
 
-#### Quadratic execution
+#### Protocol downgrades
 
 In protocols 0 and 1 most variable length values are pickled as a new-line
 terminated, ASCII string. This includes (long) integers. `pickletools`
@@ -161,6 +161,13 @@ the impact of any DOS.
 
 [bf2674]: https://github.com/python/cpython/commit/bf2674be0e95787cdeb154091b7377e30b2827bf
 [fdc034]: https://github.com/python/cpython/commit/fdc03462b3e0796ae6474da6f0f9844773d1da8f
+
+Benchmarks of float, integer, byte string and text string for payloads of 1
+Byte to 1 MByte show protocol 0 op-codes are significantly slow to deserialize.
+An integer can take 10000 times longer to decode if the `LONG` op-code is used.
+
+![Decoding protocol 0 is several orders of magnitude slower than protocol 2](img/bench_pickle_py27.svg "CPython 2.7 Pickle loads performance")
+![Python 3.6 is consistently slower than Python 2.7 to decode bytes using protocol 2](img/bench_pickle_py36.svg "CPython 3.6 Pickle loads performance")
 
 ## Other considerations
 
