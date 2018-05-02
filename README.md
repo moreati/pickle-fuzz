@@ -199,7 +199,7 @@ constructors will be identified by an integer, instead of the GLOBAL (`c`)
 op-code. This mechanism is inherantly opt-in, since the extension registry is
 empty by default. An example
 
-```
+```python
 >>> import collections, copy_reg, pickle, pickletools
 >>> pickletools.optimize(pickle.dumps(collections.OrderedDict(), protocol=2))
 '\x80\x02ccollections\nOrderedDict\n]\x85R.'
