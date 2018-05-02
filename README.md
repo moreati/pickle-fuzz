@@ -238,4 +238,4 @@ A grab bag of links, advice etc
 [Exploiting misuse of Python's "pickle"]: https://blog.nelhage.com/2011/03/exploiting-pickle/
 [How pickle works in Python]: https://rushter.com/blog/pickle-serialization-internals/
 [Playing with Python Pickle]: https://sensepost.com/blog/2010/playing-with-python-pickle-%231/
-[Sour pickles]: https://media.blackhat.com/bh-us-11/Slaviero/BH_US_11_Slaviero_Sour_Pickles_Slides.pdf]
+[Sour pickles]: https://media.blackhat.com/bh-us-11/Slaviero/BH_US_11_Slaviero_Sour_Pickles_Slides.pdf
