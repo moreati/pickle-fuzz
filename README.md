@@ -210,6 +210,26 @@ empty by default. An example
 
 Note that this still requires the REDUCE op-code.
 
+### Python 2.x vs 3.x behaviour
+
+On 64-bit builds of Python 2.x integers between 2**32 and 2**63-1 are pickled
+using an `INT` opcode
+
+```python
+>>> pickle.dumps(2**62, protocol=2)
+'\x80\x02I4611686018427387904\n.'
+```
+
+On 64 bit builds of Python 3.x such integers are pickled using a `LONG` opcode
+
+```python
+>>> pickle.dumps(2**62, protocol=2)
+b'\x80\x02\x8a\x08\x00\x00\x00\x00\x00\x00\x00@.'
+```
+
+As a result some `int` objects pickled in Python 3.6 values will be unpickled
+as a `long` object in Python 2.x.
+
 ## Further reading
 
 Other pickle payloads based on global objects
