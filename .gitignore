@@ -1,4 +1,5 @@
 *.o
 *.pyc
+.ipynb_checkpoints/
 .tox/
 results/
