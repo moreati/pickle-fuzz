@@ -1,6 +1,5 @@
-"""Create portable serialized representations of Python objects.
+"""Create unportable serialized representations of Python objects.
 
-See module cPickle for a (much) faster implementation.
 See module copy_reg for a mechanism for registering custom picklers.
 See module pickletools source for extensive comments.
 
@@ -19,8 +18,6 @@ Functions:
 Misc variables:
 
     __version__
-    format_version
-    compatible_formats
 
 """
 
@@ -36,15 +33,6 @@ import re
 
 __all__ = ["PickleError", "PicklingError", "UnpicklingError", "Pickler",
            "Unpickler", "dump", "dumps", "load", "loads"]
-
-# These are purely informational; no code uses these.
-format_version = "2.0"                  # File format version we write
-compatible_formats = ["1.0",            # Original protocol 0
-                      "1.1",            # Protocol 0 with INST added
-                      "1.2",            # Original protocol 1
-                      "1.3",            # Protocol 1 with BINFLOAT added
-                      "2.0",            # Protocol 2
-                      ]                 # Old format versions we can read
 
 # Keep in synch with cPickle.  This is the highest protocol number we
 # know how to read.
@@ -104,20 +92,15 @@ STOP            = '.'   # every pickle ends with STOP
 POP             = '0'   # discard topmost stack item
 POP_MARK        = '1'   # discard stack top through topmost markobject
 DUP             = '2'   # duplicate top stack item
-FLOAT           = 'F'   # push float object; decimal string argument
 INT             = 'I'   # push integer or bool; decimal string argument
 BININT          = 'J'   # push four-byte signed int
 BININT1         = 'K'   # push 1-byte unsigned int
-LONG            = 'L'   # push long; decimal string argument
 BININT2         = 'M'   # push 2-byte unsigned int
 NONE            = 'N'   # push None
-PERSID          = 'P'   # push persistent object; id is taken from string arg
 BINPERSID       = 'Q'   #  "       "         "  ;  "  "   "     "  stack
 REDUCE          = 'R'   # apply callable to argtuple, both on stack
-STRING          = 'S'   # push string; NL-terminated string argument
 BINSTRING       = 'T'   # push string; counted binary string argument
 SHORT_BINSTRING = 'U'   #  "     "   ;    "      "       "      " < 256 bytes
-UNICODE         = 'V'   # push Unicode string; raw-unicode-escaped'd argument
 BINUNICODE      = 'X'   #   "     "       "  ; counted UTF-8 string argument
 APPEND          = 'a'   # append stack top to list below it
 BUILD           = 'b'   # call __setstate__ or __dict__.update()
@@ -125,14 +108,11 @@ GLOBAL          = 'c'   # push self.find_class(modname, name); 2 string args
 DICT            = 'd'   # build a dict from stack items
 EMPTY_DICT      = '}'   # push empty dict
 APPENDS         = 'e'   # extend list on stack by topmost stack slice
-GET             = 'g'   # push item from memo on stack; index is string arg
 BINGET          = 'h'   #   "    "    "    "   "   "  ;   "    " 1-byte arg
-INST            = 'i'   # build & push class instance
 LONG_BINGET     = 'j'   # push item from memo on stack; index is 4-byte arg
 LIST            = 'l'   # build list from topmost stack items
 EMPTY_LIST      = ']'   # push empty list
 OBJ             = 'o'   # build & push class instance
-PUT             = 'p'   # store stack top in memo; index is string arg
 BINPUT          = 'q'   #   "     "    "   "   " ;   "    " 1-byte arg
 LONG_BINPUT     = 'r'   #   "     "    "   "   " ;   "    " 4-byte arg
 SETITEM         = 's'   # add key+value pair to dict
@@ -140,9 +120,6 @@ TUPLE           = 't'   # build tuple from topmost stack items
 EMPTY_TUPLE     = ')'   # push empty tuple
 SETITEMS        = 'u'   # modify dict by adding topmost key+value pairs
 BINFLOAT        = 'G'   # push float; arg is 8-byte float encoding
-
-TRUE            = 'I01\n'  # not an opcode; see INT docs in pickletools.py
-FALSE           = 'I00\n'  # not an opcode; see INT docs in pickletools.py
 
 # Protocol 2
 
@@ -169,41 +146,18 @@ del x
 # Pickling machinery
 
 class Pickler:
-
-    def __init__(self, file, protocol=None):
+    def __init__(self, file):
         """This takes a file-like object for writing a pickle data stream.
-
-        The optional protocol argument tells the pickler to use the
-        given protocol; supported protocols are 0, 1, 2.  The default
-        protocol is 0, to be backwards compatible.  (Protocol 0 is the
-        only protocol that can be written to a file opened in text
-        mode and read back successfully.  When using a protocol higher
-        than 0, make sure the file is opened in binary mode, both when
-        pickling and unpickling.)
-
-        Protocol 1 is more efficient than protocol 0; protocol 2 is
-        more efficient than protocol 1.
-
-        Specifying a negative protocol version selects the highest
-        protocol version supported.  The higher the protocol used, the
-        more recent the version of Python needed to read the pickle
-        produced.
 
         The file parameter must have a write() method that accepts a single
         string argument.  It can thus be an open file object, a StringIO
         object, or any other custom object that meets this interface.
 
         """
-        if protocol is None:
-            protocol = 0
-        if protocol < 0:
-            protocol = HIGHEST_PROTOCOL
-        elif not 0 <= protocol <= HIGHEST_PROTOCOL:
-            raise ValueError("pickle protocol must be <= %d" % HIGHEST_PROTOCOL)
         self.write = file.write
         self.memo = {}
-        self.proto = int(protocol)
-        self.bin = protocol >= 1
+        self.proto = 2
+        self.bin = True
         self.fast = 0
 
     def clear_memo(self):
@@ -246,7 +200,7 @@ class Pickler:
         self.write(self.put(memo_len))
         self.memo[id(obj)] = memo_len, obj
 
-    # Return a PUT (BINPUT, LONG_BINPUT) opcode string, with argument i.
+    # Return a BINPUT or LONG_BINPUT opcode string, with argument i.
     def put(self, i, pack=struct.pack):
         if self.bin:
             if i < 256:
@@ -254,17 +208,13 @@ class Pickler:
             else:
                 return LONG_BINPUT + pack("<i", i)
 
-        return PUT + repr(i) + '\n'
-
-    # Return a GET (BINGET, LONG_BINGET) opcode string, with argument i.
+    # Return a BINGET, LONG_BINGET opcode string, with argument i.
     def get(self, i, pack=struct.pack):
         if self.bin:
             if i < 256:
                 return BINGET + chr(i)
             else:
                 return LONG_BINGET + pack("<i", i)
-
-        return GET + repr(i) + '\n'
 
     def save(self, obj):
         # Check for persistent id (defined by a subclass)
@@ -339,8 +289,6 @@ class Pickler:
         if self.bin:
             self.save(pid)
             self.write(BINPERSID)
-        else:
-            self.write(PERSID + str(pid) + '\n')
 
     def save_reduce(self, func, args, state=None,
                     listitems=None, dictitems=None, obj=None):
@@ -396,11 +344,6 @@ class Pickler:
             save(cls)
             save(args)
             write(NEWOBJ)
-        else:
-            save(func)
-            save(args)
-            write(REDUCE)
-
         if obj is not None:
             # If the object is already in the memo, this means it is
             # recursive. In this case, throw away everything we put on the
@@ -436,8 +379,6 @@ class Pickler:
     def save_bool(self, obj):
         if self.proto >= 2:
             self.write(obj and NEWTRUE or NEWFALSE)
-        else:
-            self.write(obj and TRUE or FALSE)
     dispatch[bool] = save_bool
 
     def save_int(self, obj, pack=struct.pack):
@@ -479,8 +420,6 @@ class Pickler:
     def save_float(self, obj, pack=struct.pack):
         if self.bin:
             self.write(BINFLOAT + pack('>d', obj))
-        else:
-            self.write(FLOAT + repr(obj) + '\n')
     dispatch[FloatType] = save_float
 
     def save_string(self, obj, pack=struct.pack):
@@ -490,8 +429,6 @@ class Pickler:
                 self.write(SHORT_BINSTRING + chr(n) + obj)
             else:
                 self.write(BINSTRING + pack("<i", n) + obj)
-        else:
-            self.write(STRING + repr(obj) + '\n')
         self.memoize(obj)
     dispatch[StringType] = save_string
 
@@ -500,10 +437,6 @@ class Pickler:
             encoding = obj.encode('utf-8')
             n = len(encoding)
             self.write(BINUNICODE + pack("<i", n) + encoding)
-        else:
-            obj = obj.replace("\\", "\\u005c")
-            obj = obj.replace("\n", "\\u000a")
-            self.write(UNICODE + obj.encode('raw-unicode-escape') + '\n')
         self.memoize(obj)
     dispatch[UnicodeType] = save_unicode
 
@@ -524,14 +457,6 @@ class Pickler:
                         self.write(BINUNICODE + s + obj)
                     else:
                         self.write(BINSTRING + s + obj)
-            else:
-                if unicode:
-                    obj = obj.replace("\\", "\\u005c")
-                    obj = obj.replace("\n", "\\u000a")
-                    obj = obj.encode('raw-unicode-escape')
-                    self.write(UNICODE + obj + '\n')
-                else:
-                    self.write(STRING + repr(obj) + '\n')
             self.memoize(obj)
         dispatch[StringType] = save_string
 
@@ -543,8 +468,6 @@ class Pickler:
         if n == 0:
             if proto:
                 write(EMPTY_TUPLE)
-            else:
-                write(MARK + TUPLE)
             return
 
         save = self.save
@@ -561,8 +484,7 @@ class Pickler:
                 self.memoize(obj)
             return
 
-        # proto 0 or proto 1 and tuple isn't empty, or proto > 1 and tuple
-        # has more than 3 elements.
+        # tuple has more than 3 elements.
         write(MARK)
         for element in obj:
             save(element)
@@ -578,8 +500,6 @@ class Pickler:
             get = self.get(memo[id(obj)][0])
             if proto:
                 write(POP_MARK + get)
-            else:   # proto 0 -- POP_MARK not available
-                write(POP * (n+1) + get)
             return
 
         # No recursion.
@@ -599,8 +519,6 @@ class Pickler:
 
         if self.bin:
             write(EMPTY_LIST)
-        else:   # proto 0 -- can't use EMPTY_LIST
-            write(MARK + LIST)
 
         self.memoize(obj)
         self._batch_appends(iter(obj))
@@ -615,12 +533,6 @@ class Pickler:
         # Helper to batch up APPENDS sequences
         save = self.save
         write = self.write
-
-        if not self.bin:
-            for x in items:
-                save(x)
-                write(APPEND)
-            return
 
         r = xrange(self._BATCHSIZE)
         while items is not None:
@@ -648,9 +560,6 @@ class Pickler:
 
         if self.bin:
             write(EMPTY_DICT)
-        else:   # proto 0 -- can't use EMPTY_DICT
-            write(MARK + DICT)
-
         self.memoize(obj)
         self._batch_setitems(obj.iteritems())
 
@@ -662,13 +571,6 @@ class Pickler:
         # Helper to batch up SETITEMS sequences; proto >= 1 only
         save = self.save
         write = self.write
-
-        if not self.bin:
-            for k, v in items:
-                save(k)
-                save(v)
-                write(SETITEM)
-            return
 
         r = xrange(self._BATCHSIZE)
         while items is not None:
@@ -714,10 +616,6 @@ class Pickler:
             for arg in args:
                 save(arg)
             write(OBJ)
-        else:
-            for arg in args:
-                save(arg)
-            write(INST + cls.__module__ + '\n' + cls.__name__ + '\n')
 
         self.memoize(obj)
 
@@ -888,14 +786,9 @@ class Unpickler:
 
     def load_proto(self):
         proto = ord(self.read(1))
-        if not 0 <= proto <= 2:
+        if proto != 2:
             raise ValueError, "unsupported pickle protocol: %d" % proto
     dispatch[PROTO] = load_proto
-
-    def load_persid(self):
-        pid = self.readline()[:-1]
-        self.append(self.persistent_load(pid))
-    dispatch[PERSID] = load_persid
 
     def load_binpersid(self):
         pid = self.stack.pop()
@@ -916,10 +809,20 @@ class Unpickler:
 
     def load_int(self):
         data = self.readline()
-        if data == FALSE[1:]:
-            val = False
-        elif data == TRUE[1:]:
-            val = True
+        # INT is the most expensive opcode to unpickle, an attractive target
+        # for denial of service attacks. Unfortunately we need it, since it's
+        # the only opcode that can represent an int object between 2**31 and
+        # 2**63.
+        #
+        # The next best option is rejecting any INT with data that is longer
+        # than needed to represent sys.maxint from a 64-bit build of CPython.
+        # Such a payload would never be generated under normal conditions.
+        #
+        # >>> len(repr(-sys.maxint)+'\n') # On a 64-bit build
+        # 21
+
+        if len(data) > 21:
+            raise UnpicklingError("INT data is too long to be a valid int()")
         else:
             try:
                 val = int(data)
@@ -940,10 +843,6 @@ class Unpickler:
         self.append(mloads('i' + self.read(2) + '\000\000'))
     dispatch[BININT2] = load_binint2
 
-    def load_long(self):
-        self.append(long(self.readline()[:-1], 0))
-    dispatch[LONG] = load_long
-
     def load_long1(self):
         n = ord(self.read(1))
         bytes = self.read(n)
@@ -956,35 +855,14 @@ class Unpickler:
         self.append(decode_long(bytes))
     dispatch[LONG4] = load_long4
 
-    def load_float(self):
-        self.append(float(self.readline()[:-1]))
-    dispatch[FLOAT] = load_float
-
     def load_binfloat(self, unpack=struct.unpack):
         self.append(unpack('>d', self.read(8))[0])
     dispatch[BINFLOAT] = load_binfloat
-
-    def load_string(self):
-        rep = self.readline()[:-1]
-        for q in "\"'": # double or single quote
-            if rep.startswith(q):
-                if len(rep) < 2 or not rep.endswith(q):
-                    raise ValueError, "insecure string pickle"
-                rep = rep[len(q):-len(q)]
-                break
-        else:
-            raise ValueError, "insecure string pickle"
-        self.append(rep.decode("string-escape"))
-    dispatch[STRING] = load_string
 
     def load_binstring(self):
         len = mloads('i' + self.read(4))
         self.append(self.read(len))
     dispatch[BINSTRING] = load_binstring
-
-    def load_unicode(self):
-        self.append(unicode(self.readline()[:-1],'raw-unicode-escape'))
-    dispatch[UNICODE] = load_unicode
 
     def load_binunicode(self):
         len = mloads('i' + self.read(4))
@@ -1069,13 +947,6 @@ class Unpickler:
                     klass.__name__, str(err)), sys.exc_info()[2]
         self.append(value)
 
-    def load_inst(self):
-        module = self.readline()[:-1]
-        name = self.readline()[:-1]
-        klass = self.find_class(module, name)
-        self._instantiate(klass, self.marker())
-    dispatch[INST] = load_inst
-
     def load_obj(self):
         # Stack is ... markobject classobject arg1 arg2 ...
         k = self.marker()
@@ -1153,10 +1024,6 @@ class Unpickler:
         self.append(self.stack[-1])
     dispatch[DUP] = load_dup
 
-    def load_get(self):
-        self.append(self.memo[self.readline()[:-1]])
-    dispatch[GET] = load_get
-
     def load_binget(self):
         i = ord(self.read(1))
         self.append(self.memo[repr(i)])
@@ -1166,10 +1033,6 @@ class Unpickler:
         i = mloads('i' + self.read(4))
         self.append(self.memo[repr(i)])
     dispatch[LONG_BINGET] = load_long_binget
-
-    def load_put(self):
-        self.memo[self.readline()[:-1]] = self.stack[-1]
-    dispatch[PUT] = load_put
 
     def load_binput(self):
         i = ord(self.read(1))
@@ -1372,12 +1235,12 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-def dump(obj, file, protocol=None):
-    Pickler(file, protocol).dump(obj)
+def dump(obj, file):
+    Pickler(file).dump(obj)
 
-def dumps(obj, protocol=None):
+def dumps(obj):
     file = StringIO()
-    Pickler(file, protocol).dump(obj)
+    Pickler(file).dump(obj)
     return file.getvalue()
 
 def load(file):
