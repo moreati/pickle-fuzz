@@ -344,6 +344,11 @@ class Pickler:
             save(cls)
             save(args)
             write(NEWOBJ)
+        else:
+            save(func)
+            save(args)
+            write(REDUCE)
+
         if obj is not None:
             # If the object is already in the memo, this means it is
             # recursive. In this case, throw away everything we put on the
