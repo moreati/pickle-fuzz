@@ -810,9 +810,8 @@ class Unpickler:
     def load_int(self):
         data = self.readline()
         # INT is the most expensive opcode to unpickle, an attractive target
-        # for denial of service attacks. Unfortunately we need it, since it's
-        # the only opcode that can represent an int object between 2**31 and
-        # 2**63.
+        # for denial of service attacks. Unfortunately we need it, no other
+        # opcode can round-trip an int object between 2**31 and 2**63.
         #
         # The next best option is rejecting any INT with data that is longer
         # than needed to represent sys.maxint from a 64-bit build of CPython.
