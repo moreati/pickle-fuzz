@@ -104,7 +104,6 @@ SHORT_BINSTRING = 'U'   #  "     "   ;    "      "       "      " < 256 bytes
 BINUNICODE      = 'X'   #   "     "       "  ; counted UTF-8 string argument
 APPEND          = 'a'   # append stack top to list below it
 BUILD           = 'b'   # call __setstate__ or __dict__.update()
-GLOBAL          = 'c'   # push self.find_class(modname, name); 2 string args
 DICT            = 'd'   # build a dict from stack items
 EMPTY_DICT      = '}'   # push empty dict
 APPENDS         = 'e'   # extend list on stack by topmost stack slice
@@ -673,8 +672,10 @@ class Pickler:
                     write(EXT4 + pack("<i", code))
                 return
 
-        write(GLOBAL + module + '\n' + name + '\n')
-        self.memoize(obj)
+        raise PicklingError(
+            "Can't pickle %r: %s.%s is not in the extension registry" %
+            (obj, module, name),
+        )
 
     dispatch[ClassType] = save_global
     dispatch[FunctionType] = save_global
@@ -734,7 +735,6 @@ def whichmodule(func, funcname):
 # Unpickling machinery
 
 class Unpickler:
-
     def __init__(self, file):
         """This takes a file-like object for reading a pickle data stream.
 
@@ -964,13 +964,6 @@ class Unpickler:
         obj = cls.__new__(cls, *args)
         self.stack[-1] = obj
     dispatch[NEWOBJ] = load_newobj
-
-    def load_global(self):
-        module = self.readline()[:-1]
-        name = self.readline()[:-1]
-        klass = self.find_class(module, name)
-        self.append(klass)
-    dispatch[GLOBAL] = load_global
 
     def load_ext1(self):
         code = ord(self.read(1))
