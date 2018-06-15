@@ -254,12 +254,17 @@ Other pickle payloads based on global objects
 
         b"c__builtin__globals(tRp100\n0c__builtin__\ngetattr\n(c__builtin__\ndict\nS'get'\ntRp101\n0c__builtin__\napply\n(g101\n(g100\nS'loads'\nltRp102\n(S'cos\\nsystem\\n(S\\'sleep 10\\'\\ntR.'tR"
 
+Other mitigations
+
+- [SECURITY UPDATE for CVE-2014-0485: Do not blindly unpickle untrusted data], by Nikolaus Rath
+
 A grab bag of links, advice etc
 
 - [Don’t use pickle — use Camel], by Eevee
 - [Diving into the Python Pickle format], by Pierre-Yves Ritschard
 - [How pickle works in Python], by Artem Golubin
 
+[SECURITY UPDATE for CVE-2014-0485: Do not blindly unpickle untrusted data]: https://bitbucket.org/nikratio/s3ql/commits/8d517337bbbfc93f207557914db8d58f1067944d
 [Dangerous pickles — malicious Python serialization]: https://intoli.com/blog/dangerous-pickles/
 [Diving into the Python Pickle format]: http://spootnik.org/entries/2014/04/05/diving-into-the-python-pickle-formatt/
 [Don’t use pickle — use Camel]: https://eev.ee/release/2015/10/15/dont-use-pickle-use-camel/
