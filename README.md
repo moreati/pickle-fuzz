@@ -230,6 +230,14 @@ b'\x80\x02\x8a\x08\x00\x00\x00\x00\x00\x00\x00@.'
 As a result some `int` objects pickled in Python 3.6 values will be unpickled
 as a `long` object in Python 2.x.
 
+### DUP opcode
+
+`DUP` duplicates the top item on the stack, and places it back on the stack.
+It is supported by `pickle.Unpickler`, but it's not used by `pickle.Pickler`.
+As a result, any pickle containing a `DUP` opcode cannot have been produced by
+the Python stdlib.
+
+
 ## Further reading
 
 Other pickle payloads based on global objects
