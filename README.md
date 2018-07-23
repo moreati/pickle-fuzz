@@ -212,8 +212,8 @@ Note that this still requires the REDUCE op-code.
 
 ### Python 2.x vs 3.x behaviour
 
-On 64-bit builds of Python 2.x integers between 2**32 and 2**63-1 are pickled
-using an `INT` opcode
+On 64-bit builds of Python 2.x integers between 2<sup>32</sup> and 
+2<sup>63</sup>-1 are pickled using an `INT` opcode
 
 ```python
 >>> pickle.dumps(2**62, protocol=2)
