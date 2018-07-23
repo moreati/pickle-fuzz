@@ -114,9 +114,7 @@ System will usually kill the Python process for exceeding resource limits.
 [billion laughs attack]: https://en.wikipedia.org/wiki/Billion_laughs_attack
 
 ```python
->>> a = ['lol']*10
->>> a
-['lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol']
+>>> a = ['lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol']
 >>> b = [a,a,a,a,a,a,a,a,a,a]
 >>> c = [b,b,b,b,b,b,b,b,b,b]
 >>> d = [c,c,c,c,c,c,c,c,c,c]
@@ -130,7 +128,7 @@ System will usually kill the Python process for exceeding resource limits.
 10
 >>> 10**10
 10000000000
->>> pickle.dump(j, open('billion-laughs.pkl1', 'wb'))
+>>> pickle.dump(j, open('billion-laughs.pkl1', 'wb'), protocol=0)
 >>> pickle.dump(j, open('billion-laughs.pkl2', 'wb'), protocol=2)
 ```
 
