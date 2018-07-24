@@ -161,7 +161,7 @@ the impact of any DOS.
 [fdc034]: https://github.com/python/cpython/commit/fdc03462b3e0796ae6474da6f0f9844773d1da8f
 
 Benchmarks of float, integer, byte string and text string for payloads of 1
-Byte to 1 MByte show protocol 0 op-codes are significantly slow to deserialize.
+Byte to 1 MByte show protocol 0 op-codes are significantly slower to deserialize.
 An integer can take 10000 times longer to decode if the `LONG` op-code is used.
 
 ![Decoding protocol 0 is several orders of magnitude slower than protocol 2](img/bench_pickle_py27.svg "CPython 2.7 Pickle loads performance")
