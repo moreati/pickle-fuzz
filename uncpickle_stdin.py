@@ -42,3 +42,9 @@ def main():
         pass
     except ValueError:
         pass
+
+
+import afl
+afl.init()
+main()
+os._exit(0)
