@@ -5,6 +5,7 @@ import pickle
 import struct
 import sys
 
+
 class RestrictedUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         raise pickle.UnpicklingError('You shall not pass!')
