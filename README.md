@@ -208,25 +208,41 @@ empty by default. An example
 
 Note that this still requires the REDUCE op-code.
 
-### Python 2.x vs 3.x behaviour
+### Integer opcodes
 
-On 64-bit builds of Python 2.x integers between 2<sup>32</sup> and 
-2<sup>63</sup>-1 are pickled using an `INT` opcode
+Python 2.x has two integer types: `int`, or `long`. Python 3.x unified these
+types into one: `int`. An object that was pickled from an `int` may be
+unpickled as a `long`, and vice versa.
+
+#### Protocol 0
+
+Python 2.x pickles `int` objects with an INT opcode, and `long` objects with
+a LONG opcode.
+
+Python 3.0 to 3.6 pickles `int` objects with a LONG opcode. This behaviour
+was identified as a regression in [bpo-32037]. Python 3.7 and onward pickles
+`int` objects smaller than 32-bits with an INT opcode, and all others with a
+LONG opcode.
+
+[bpo-32037]: https://bugs.python.org/issue32037
+
+#### Protocol 2 onward
+
+At protocol 2 and above all Python releases use BININT, BININT1 or BININT2
+opcodes for 32-bit integers. On 64-bit builds of Python 2.x integers between
+2<sup>32</sup> and 2<sup>63</sup>-1 are pickled using an `INT` opcode
 
 ```python
 >>> pickle.dumps(2**62, protocol=2)
 '\x80\x02I4611686018427387904\n.'
 ```
 
-On 64 bit builds of Python 3.x such integers are pickled using a `LONG` opcode
+On 64 bit builds of Python 3.x such integers are pickled with a `LONG1` opcode
 
 ```python
 >>> pickle.dumps(2**62, protocol=2)
 b'\x80\x02\x8a\x08\x00\x00\x00\x00\x00\x00\x00@.'
 ```
-
-As a result some `int` objects pickled in Python 3.6 values will be unpickled
-as a `long` object in Python 2.x.
 
 ### DUP opcode
 
