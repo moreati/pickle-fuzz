@@ -1,4 +1,4 @@
-# Fuzzing Python's pickle module
+# Rehabilitating Python's pickle module
 
 Can Python's `pickle` module be used safely? Even if the commonly cited code
 execution attacks are mitigated (with `find_class()`) what attacks remain?
