@@ -252,6 +252,10 @@ As a result, any pickle containing a `DUP` opcode cannot have been produced by
 the Python stdlib.
 
 
+### Weird machines
+
+- What happens if a SETITEM has repeated keys? Is this implementation defined?
+
 ## Further reading
 
 Other pickle payloads based on global objects
