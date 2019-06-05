@@ -256,6 +256,14 @@ the Python stdlib.
 
 - What happens if a SETITEM has repeated keys? Is this implementation defined?
 
+The order of keys in a pickled `dict` is not specified. Prior to CPython 3.6
+`dict` objects dont have a defined iteration order. Pickling the same dict
+object twice may produce distinct pickles. They should unpickle the same, but
+maybe not?
+
+`set` and `frozenset` objects still don't have defined iteration order. So
+pickling such an object twice may produce differing pickles.
+
 ## Further reading
 
 Other pickle payloads based on global objects
