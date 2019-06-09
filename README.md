@@ -244,6 +244,33 @@ On 64 bit builds of Python 3.x such integers are pickled with a `LONG1` opcode
 b'\x80\x02\x8a\x08\x00\x00\x00\x00\x00\x00\x00@.'
 ```
 
+### String opcodes
+
+Python 2.x has two string types: `str`, and `unicode`. Common practice played
+loose and fast with whether `str` is a byte string, or a textual string.
+Python 3.x cleaned the distinction between its types: `bytes` and `str`.
+
+#### Protocol 0-2
+
+Protocol <= 2 pickles produced by Python 2.x don't specify an encoding
+
+```python2
+>>> pickle.dumps('abc', protocol=0)
+"S'abc'\np0\n."
+```
+
+Pickles produced by Python 3.x the `GLOBAL` opcode to call `_codecs.encode`.
+This serves as a backward-compatibile shim to explicitly declare an encoding
+
+```python3
+>>> pickle.dumps(b'abc', protocol=0)
+b'c_codecs\nencode\np0\n(Vabc\np1\nVlatin1\np2\ntp3\nRp4\n.'
+```
+
+#### Protocol 3 onward
+
+Protocol 3 added specific opcodes for byte strings
+
 ### DUP opcode
 
 `DUP` duplicates the top item on the stack, and places it back on the stack.
