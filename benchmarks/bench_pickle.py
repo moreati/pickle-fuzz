@@ -11,7 +11,17 @@ runner = perf.Runner()
 
 # TODO pyppickle
 
-LENGTHS = [0, 1, 10, 100, 1000, 10000, 100000, 1000000]
+LENGTHS = [
+    0,
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+]
+
 for protocol in PROTOCOLS:
     for zeros in LENGTHS:
         if protocol == 0:
