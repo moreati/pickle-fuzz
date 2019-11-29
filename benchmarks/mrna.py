@@ -45,12 +45,16 @@ else:
     for n in range(20)
 )
 
-_pack_u32 = lambda n: struct.pack('>I', n)
-_pack_u64 = lambda n: struct.pack('>Q', n)
-_pack_d64 = lambda n: struct.pack('>d', n)
-_unpack_u32 = lambda s: struct.unpack('>I', s)[0]
-_unpack_u64 = lambda s: struct.unpack('>Q', s)[0]
-_unpack_d64 = lambda s: struct.unpack('>d', s)[0]
+
+U32 = struct.Struct('>I')
+U64 = struct.Struct('>Q')
+D64 = struct.Struct('>d')
+_pack_u32 = U32.pack
+_pack_u64 = U64.pack
+_pack_d64 = D64.pack
+_unpack_u32 = lambda s: U32.unpack(s)[0]
+_unpack_u64 = lambda s: U64.unpack(s)[0]
+_unpack_d64 = lambda s: D64.unpack(s)[0]
 _bools = (KIND_FALSE, KIND_TRUE)
 
 
