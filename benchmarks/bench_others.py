@@ -8,14 +8,21 @@ except ImportError:
 import pickle as py_pickle
 
 import pprint
+import sys
+
 import pyperf
 
 import pencode
 import pencode_read
 
+if sys.version_info.major >= 3:
+    PICKLE_PROTOCOLS = [2, 3]
+else:
+    PICKLE_PROTOCOLS = [2
+]
 CANDIDATES = [
 #    ('py_pickle',   pickle._dumps,  pickle._loads),
-    ('cpickle',         cpickle.dumps,          cpickle.loads,          [3]),
+    ('cpickle',         cpickle.dumps,          cpickle.loads,          PICKLE_PROTOCOLS),
     ('pencode',         pencode.pencode,        pencode.pdecode,        [None]),
     ('pencode_read',    pencode_read.pencode,   pencode_read.pdecode,   [None]),
 #    ('cickle',      cickle.dumps,   pickle.dumps),
