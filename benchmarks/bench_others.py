@@ -11,11 +11,13 @@ import pprint
 import pyperf
 
 import pencode
+import pencode_read
 
 CANDIDATES = [
 #    ('py_pickle',   pickle._dumps,  pickle._loads),
     ('cpickle',         cpickle.dumps,          cpickle.loads,          [3]),
     ('pencode',         pencode.pencode,        pencode.pdecode,        [None]),
+    ('pencode_read',    pencode_read.pencode,   pencode_read.pdecode,   [None]),
 #    ('cickle',      cickle.dumps,   pickle.dumps),
 ]
 
