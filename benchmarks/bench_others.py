@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import pickle
+import difflib
 
+import pprint
 import pyperf
 
 import pencode
@@ -53,7 +55,14 @@ if __name__ == '__main__':
     for name, dumps, loads, protocol in cases():
         s = dumps(obj1)
         obj2 = loads(s)
-        assert obj1 == obj2
+        if obj1 != obj2:
+            print(name)
+            raise ValueError(''.join(difflib.context_diff(
+                pprint.pformat(obj1).splitlines(keepends=True),
+                pprint.pformat(obj2).splitlines(keepends=True),
+                fromfile=name,
+                tofile=name,
+            )))
         runner.timeit(
             name='{name},proto={protocol},dumps'.format(name=name,protocol=protocol),
             stmt='dumps(obj)',
