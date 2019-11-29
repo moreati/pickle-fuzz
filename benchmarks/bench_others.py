@@ -6,7 +6,7 @@ try:
 except ImportError:
     import pickle as cpickle
 import pickle as py_pickle
-
+import marshal
 import pprint
 import sys
 
@@ -25,6 +25,7 @@ CANDIDATES = [
     ('cpickle',         cpickle.dumps,          cpickle.loads,          PICKLE_PROTOCOLS),
     ('pencode',         pencode.pencode,        pencode.pdecode,        [None]),
     ('pencode_read',    pencode_read.pencode,   pencode_read.pdecode,   [None]),
+    ('marshal',         marshal.dumps,          marshal.loads,          [1]),
 #    ('cickle',      cickle.dumps,   pickle.dumps),
 ]
 
