@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
-import pickle
 import difflib
+try:
+    import cPickle as cpickle
+except ImportError:
+    import pickle as cpickle
+import pickle as py_pickle
 
 import pprint
 import pyperf
 
 import pencode
 
-PROTOCOLS = [3] #range(pickle.HIGHEST_PROTOCOL+1)
-
 CANDIDATES = [
 #    ('py_pickle',   pickle._dumps,  pickle._loads),
-    ('cpickle',     pickle.dumps,   pickle.loads),
-    ('pencode',     pencode.pencode, pencode.pdecode),
+    ('cpickle',         cpickle.dumps,          cpickle.loads,          [3]),
+    ('pencode',         pencode.pencode,        pencode.pdecode,        [None]),
 #    ('cickle',      cickle.dumps,   pickle.dumps),
 ]
 
@@ -44,8 +46,8 @@ def setup():
     ] for i in range(1000)]
 
 def cases():
-    for name, dumps, loads in CANDIDATES:
-        for protocol in PROTOCOLS:
+    for name, dumps, loads, protocols in CANDIDATES:
+        for protocol in protocols:
             yield name, dumps, loads, protocol
 
 
@@ -53,7 +55,10 @@ if __name__ == '__main__':
     runner = pyperf.Runner()
     obj1 = setup()
     for name, dumps, loads, protocol in cases():
-        s = dumps(obj1)
+        if protocol is None:
+            s = dumps(obj1)
+        else:
+            s = dumps(obj1, protocol)
         obj2 = loads(s)
         if obj1 != obj2:
             print(name)
@@ -65,8 +70,8 @@ if __name__ == '__main__':
             )))
         runner.timeit(
             name='{name},proto={protocol},dumps'.format(name=name,protocol=protocol),
-            stmt='dumps(obj)',
-            globals={'dumps': dumps, 'obj': obj1},
+            stmt='dumps(obj)' if protocol is None else 'dumps(obj, protocol)',
+            globals={'dumps': dumps, 'obj': obj1, 'protocol': protocol},
         )
         runner.timeit(
             name='{name},proto={protocol},loads'.format(name=name,protocol=protocol),
