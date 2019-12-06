@@ -18,8 +18,8 @@ import pencode_read
 if sys.version_info.major >= 3:
     PICKLE_PROTOCOLS = [2, 3]
 else:
-    PICKLE_PROTOCOLS = [2
-]
+    PICKLE_PROTOCOLS = [2]
+
 CANDIDATES = [
 #    ('py_pickle',   pickle._dumps,  pickle._loads),
     ('cpickle',         cpickle.dumps,          cpickle.loads,          PICKLE_PROTOCOLS),
