@@ -14,6 +14,7 @@ import pyperf
 
 import pencode
 import pencode_read
+import pencode_read5
 import pickle4.pickle
 
 if sys.version_info.major >= 3:
@@ -26,6 +27,7 @@ CANDIDATES = [
     ('cpickle',         cpickle.dumps,          cpickle.loads,          PICKLE_PROTOCOLS),
     ('pencode',         pencode.pencode,        pencode.pdecode,        [None]),
     ('pencode_read',    pencode_read.pencode,   pencode_read.pdecode,   [None]),
+    ('pencode_read5',    pencode_read5.pencode,   pencode_read5.pdecode,   [None]),
     ('marshal',         marshal.dumps,          marshal.loads,          [1]),
     ('pickle4',         pickle4.pickle.dumps,   pickle4.pickle.loads,   [4]),
 #    ('cickle',      cickle.dumps,   pickle.dumps),
