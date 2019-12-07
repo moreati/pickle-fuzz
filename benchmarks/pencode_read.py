@@ -168,35 +168,28 @@ class PDecoder(object):
         file = io.BytesIO(buf)
         return self._decode(file.read, self.backrefs, self.d, SZ.unpack)
 
-    #@profile
     def _pdecode_bytes_(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         return read(sz)
 
-    #@profile
     def _pdecode_unicode(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         return utf8_decode(read(sz))[0]
-        return obj
 
-    #@profile
     def _pdecode_py2str(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         return read(sz)
         #if not PY2:
         #    obj = obj.decode('ascii')
 
-    #@profile
     def _pdecode_int(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         return int(read(sz))
 
-    #@profile
     def _pdecode_float(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         return float(read(sz))
 
-    #@profile
     def _pdecode_list(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         obj = []
@@ -205,7 +198,6 @@ class PDecoder(object):
         obj.extend(_decode(read, backrefs, d, unpack) for _ in range_(sz))
         return obj
 
-    #@profile
     def _pdecode_set(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         obj = set()
@@ -214,19 +206,16 @@ class PDecoder(object):
         obj.update(_decode(read, backrefs, d, unpack) for _ in range_(sz))
         return obj
 
-    #@profile
     def _pdecode_frozenset(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         _decode = self._decode
         return frozenset(_decode(read, backrefs, d, unpack) for _ in range_(sz))
 
-    #@profile
     def _pdecode_tuple(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         _decode = self._decode
         return tuple(_decode(read, backrefs, d, unpack) for _ in range_(sz))
         
-    #@profile
     def _pdecode_dict(self, read, backrefs, d, unpack, br_id):
         sz = unpack(read(4))[0]
         obj = {}
@@ -238,7 +227,6 @@ class PDecoder(object):
             obj[key] = value
         return obj
 
-    #@profile
     def _decode(self, read, backrefs, d, unpack):
         code = read(1)
         if code in backrefs:

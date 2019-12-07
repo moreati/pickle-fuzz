@@ -165,31 +165,24 @@ class PDecoder(object):
         file = io.BytesIO(buf)
         return self._decode(file.read, self.backrefs, self.d)
 
-    #@profile
     def _pdecode_bytes_(self, read, sz, backrefs, d, br_id):
         return read(sz)
 
-    #@profile
     def _pdecode_unicode(self, read, sz, backrefs, d, br_id,
                          utf8_decode=codecs.utf_8_decode):
         return utf8_decode(read(sz))[0]
-        return obj
 
-    #@profile
     def _pdecode_py2str(self, read, sz, backrefs, d, br_id):
         return read(sz)
         #if not PY2:
         #    obj = obj.decode('ascii')
 
-    #@profile
     def _pdecode_int(self, read, sz, backrefs, d, br_id):
         return int(read(sz))
 
-    #@profile
     def _pdecode_float(self, read, sz, backrefs, d, br_id):
         return float(read(sz))
 
-    #@profile
     def _pdecode_list(self, read, sz, backrefs, d, br_id):
         obj = []
         backrefs[br_id] = obj
@@ -197,7 +190,6 @@ class PDecoder(object):
         obj.extend(_decode(read, backrefs, d) for _ in range_(sz))
         return obj
 
-    #@profile
     def _pdecode_set(self, read, sz, backrefs, d, br_id):
         obj = set()
         backrefs[br_id] = obj
@@ -205,17 +197,14 @@ class PDecoder(object):
         obj.update(_decode(read, backrefs, d) for _ in range_(sz))
         return obj
 
-    #@profile
     def _pdecode_frozenset(self, read, sz, backrefs, d, br_id):
         _decode = self._decode
         return frozenset(_decode(read, backrefs, d) for _ in range_(sz))
 
-    #@profile
     def _pdecode_tuple(self, read, sz, backrefs, d, br_id):
         _decode = self._decode
         return tuple(_decode(read, backrefs, d) for _ in range_(sz))
         
-    #@profile
     def _pdecode_dict(self, read, sz, backrefs, d, br_id):
         obj = {}
         backrefs[br_id] = obj
@@ -226,7 +215,6 @@ class PDecoder(object):
             obj[key] = value
         return obj
 
-    #@profile
     def _decode(self, read, backrefs, d, unpack=struct.Struct('!BI').unpack):
         b = read(5)
         code, ref_id_or_sz = unpack(b)
