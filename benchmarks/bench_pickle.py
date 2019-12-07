@@ -3,11 +3,11 @@ try:
 except ImportError:
     import pickle as cpickle
 
-import perf
+import pyperf
 
 PROTOCOLS = [0, 2]
 
-runner = perf.Runner()
+runner = pyperf.Runner()
 
 # TODO pyppickle
 
