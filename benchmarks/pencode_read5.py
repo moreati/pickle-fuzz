@@ -13,9 +13,6 @@ import codecs
 SZ = struct.Struct('!I')
 REF = struct.Struct('!cI')
 
-utf8_decode = codecs.getdecoder('utf8')
-
-
 PY3 = sys.version_info >= (3,)
 PY2 = not PY3
 
@@ -101,9 +98,9 @@ class Pencoder(object):
     def __init__(self):
         self.out = []
         self.backrefs = {
-            id(None): b'n',
-            id(False): b'F',
-            id(True): b'T',
+            id(None): REF.pack(b'R', 0),
+            id(False): REF.pack(b'R', 1),
+            id(True): REF.pack(b'R', 2),
         }
 
     def getvalue(self):
@@ -147,106 +144,94 @@ class PDecoder(object):
     def __init__(self):
         self.br_count = 3
         self.backrefs = {
-            b'n': None,
-            b'F': False,
-            b'T': True,
+            0: None,
+            1: False,
+            2: True,
         }
         self.d = {
-            b'b': self._pdecode_bytes_,
-            b's': self._pdecode_unicode,
-            b'S': self._pdecode_py2str,
-            b'i': self._pdecode_int,
-            b'f': self._pdecode_float,
-            b'l': self._pdecode_list,
-            b'q': self._pdecode_set,
-            b'Q': self._pdecode_frozenset,
-            b't': self._pdecode_tuple,
-            b'd': self._pdecode_dict,
+            ord(b'b'): self._pdecode_bytes_,
+            ord(b's'): self._pdecode_unicode,
+            ord(b'S'): self._pdecode_py2str,
+            ord(b'i'): self._pdecode_int,
+            ord(b'f'): self._pdecode_float,
+            ord(b'l'): self._pdecode_list,
+            ord(b'q'): self._pdecode_set,
+            ord(b'Q'): self._pdecode_frozenset,
+            ord(b't'): self._pdecode_tuple,
+            ord(b'd'): self._pdecode_dict,
         }
 
     def decode(self, buf):
         file = io.BytesIO(buf)
-        return self._decode(file.read, self.backrefs, self.d, SZ.unpack)
+        return self._decode(file.read, self.backrefs, self.d)
 
     #@profile
-    def _pdecode_bytes_(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_bytes_(self, read, sz, backrefs, d, br_id):
         return read(sz)
 
     #@profile
-    def _pdecode_unicode(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_unicode(self, read, sz, backrefs, d, br_id,
+                         utf8_decode=codecs.utf_8_decode):
         return utf8_decode(read(sz))[0]
         return obj
 
     #@profile
-    def _pdecode_py2str(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_py2str(self, read, sz, backrefs, d, br_id):
         return read(sz)
         #if not PY2:
         #    obj = obj.decode('ascii')
 
     #@profile
-    def _pdecode_int(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_int(self, read, sz, backrefs, d, br_id):
         return int(read(sz))
 
     #@profile
-    def _pdecode_float(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_float(self, read, sz, backrefs, d, br_id):
         return float(read(sz))
 
     #@profile
-    def _pdecode_list(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_list(self, read, sz, backrefs, d, br_id):
         obj = []
         backrefs[br_id] = obj
         _decode = self._decode
-        obj.extend(_decode(read, backrefs, d, unpack) for _ in range_(sz))
+        obj.extend(_decode(read, backrefs, d) for _ in range_(sz))
         return obj
 
     #@profile
-    def _pdecode_set(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_set(self, read, sz, backrefs, d, br_id):
         obj = set()
         backrefs[br_id] = obj
         _decode = self._decode
-        obj.update(_decode(read, backrefs, d, unpack) for _ in range_(sz))
+        obj.update(_decode(read, backrefs, d) for _ in range_(sz))
         return obj
 
     #@profile
-    def _pdecode_frozenset(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_frozenset(self, read, sz, backrefs, d, br_id):
         _decode = self._decode
-        return frozenset(_decode(read, backrefs, d, unpack) for _ in range_(sz))
+        return frozenset(_decode(read, backrefs, d) for _ in range_(sz))
 
     #@profile
-    def _pdecode_tuple(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_tuple(self, read, sz, backrefs, d, br_id):
         _decode = self._decode
-        return tuple(_decode(read, backrefs, d, unpack) for _ in range_(sz))
+        return tuple(_decode(read, backrefs, d) for _ in range_(sz))
         
     #@profile
-    def _pdecode_dict(self, read, backrefs, d, unpack, br_id):
-        sz = unpack(read(4))[0]
+    def _pdecode_dict(self, read, sz, backrefs, d, br_id):
         obj = {}
         backrefs[br_id] = obj
         _decode = self._decode
         for _ in range_(sz):
-            key = _decode(read, backrefs, d, unpack)
-            value = _decode(read, backrefs, d, unpack)
+            key = _decode(read, backrefs, d)
+            value = _decode(read, backrefs, d)
             obj[key] = value
         return obj
 
     #@profile
-    def _decode(self, read, backrefs, d, unpack):
-        code = read(1)
-        if code in backrefs:
-            return backrefs[code]
-
-        if code == b'R':
-            ref_id = SZ.unpack(read(4))[0]
-            obj = backrefs[ref_id]
+    def _decode(self, read, backrefs, d, unpack=struct.Struct('!BI').unpack):
+        b = read(5)
+        code, ref_id_or_sz = unpack(b)
+        if code == 82: # ord(b'R')
+            obj = backrefs[ref_id_or_sz]
             return obj
 
         br_id = self.br_count
@@ -256,7 +241,7 @@ class PDecoder(object):
         #pdecode_func = d[code]
         #except KeyError:
         #    raise ValueError('Unknown pack opcode %r' % code)
-        obj = d[code](read, backrefs, d, unpack, br_id)
+        obj = d[code](read, ref_id_or_sz, backrefs, d, br_id)
 
         backrefs[br_id] = obj
         return obj
