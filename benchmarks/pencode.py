@@ -167,9 +167,83 @@ class PDecoder(object):
             b'F': False,
             b'T': True,
         }
+        self.d = {
+            b'b': self._pdecode_bytes_,
+            b's': self._pdecode_unicode,
+            b'S': self._pdecode_py2str,
+            b'i': self._pdecode_int,
+            b'f': self._pdecode_float,
+            b'l': self._pdecode_list,
+            b'q': self._pdecode_set,
+            b'Q': self._pdecode_frozenset,
+            b't': self._pdecode_tuple,
+            b'd': self._pdecode_dict,
+        }
+
 
     def decode(self, buf):
         return self._decode(obuf(buf))
+
+    def _pdecode_bytes_(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = obuf.read_bytes(sz)
+        return obj
+
+    def _pdecode_unicode(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = utf8_decode(obuf.read_bytes(sz))[0]
+        return obj
+
+    def _pdecode_py2str(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = obuf.read_bytes(sz)
+        if not PY2:
+            obj = obj.decode('ascii')
+        return obj
+
+    def _pdecode_int(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = int(obuf.read_bytes(sz))
+        return obj
+
+    def _pdecode_float(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = float(obuf.read_bytes(sz))
+        return obj
+
+    def _pdecode_list(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = []
+        self.backrefs[br_id] = obj
+        obj.extend(self._decode(obuf) for _ in range_(sz))
+        return obj
+
+    def _pdecode_set(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = set()
+        self.backrefs[br_id] = obj
+        obj.update(self._decode(obuf) for _ in range_(sz))
+        return obj
+
+    def _pdecode_frozenset(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = frozenset(self._decode(obuf) for _ in range_(sz))
+        return obj
+
+    def _pdecode_tuple(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = tuple(self._decode(obuf) for _ in range_(sz))
+        return obj
+
+    def _pdecode_dict(self, obuf, br_id):
+        sz = obuf.read_size()
+        obj = {}
+        self.backrefs[br_id] = obj
+        for _ in range_(sz):
+            key = self._decode(obuf)
+            value = self._decode(obuf)
+            obj[key] = value
+        return obj
 
     def _decode(self, obuf):
         code = obuf.read_bytes(1)
@@ -184,47 +258,11 @@ class PDecoder(object):
         br_id = self.br_count
         self.br_count += 1
 
-        if code == b'b':
-            sz = obuf.read_size()
-            obj = obuf.read_bytes(sz)
-        elif code == b's':
-            sz = obuf.read_size()
-            obj = utf8_decode(obuf.read_bytes(sz))[0]
-        elif code == b'S':
-            sz = obuf.read_size()
-            obj = obuf.read_bytes(sz)
-            if not PY2:
-                obj = obj.decode('ascii')
-        elif code == b'i':
-            sz = obuf.read_size()
-            obj = int(obuf.read_bytes(sz))
-        elif code == b'f':
-            sz = obuf.read_size()
-            obj = float(obuf.read_bytes(sz))
-        elif code == b'l':
-            sz = obuf.read_size()
-            obj = []
-            self.backrefs[br_id] = obj
-            obj.extend(self._decode(obuf) for _ in range_(sz))
-        elif code == b'q':
-            sz = obuf.read_size()
-            obj = set()
-            self.backrefs[br_id] = obj
-            obj.update(self._decode(obuf) for _ in range_(sz))
-        elif code in (b't', b'Q'):
-            cls = tuple if code == b't' else frozenset
-            sz = obuf.read_size()
-            obj = cls(self._decode(obuf) for _ in range_(sz))
-        elif code == b'd':
-            sz = obuf.read_size()
-            obj = {}
-            self.backrefs[br_id] = obj
-            for _ in range_(sz):
-                key = self._decode(obuf)
-                value = self._decode(obuf)
-                obj[key] = value
-        else:
+        try:
+            pdecode_func = self.d[code]
+        except KeyError:
             raise ValueError('Unknown pack opcode %r' % code)
+        obj = pdecode_func(obuf, br_id)
 
         self.backrefs[br_id] = obj
         return obj
