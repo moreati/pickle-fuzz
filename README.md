@@ -36,7 +36,6 @@ For example
 
 ```python
 class RestrictedUnpickler(pickle.Unpickler):
-
     def find_class(self, module, name):
         # Only allow safe classes from builtins.
         if module == "builtins" and name in safe_builtins:
@@ -259,7 +258,8 @@ Protocol <= 2 pickles produced by Python 2.x don't specify an encoding
 "S'abc'\np0\n."
 ```
 
-Pickles produced by Python 3.x the `GLOBAL` opcode to call `_codecs.encode`.
+Pickles produced by Python 3 use the `GLOBAL` opcode to call `_codecs.encode`
+for non-empty byte strings or  `__builtins__.bytes` for empty byte strings.
 This serves as a backward-compatibile shim to explicitly declare an encoding
 
 ```python3
